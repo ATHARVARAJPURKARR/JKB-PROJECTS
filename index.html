@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokédex</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #b2f7b9, #a3e3d9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .pokedex-container {
+            text-align: center;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        #pokemon-container {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .pokemon-card {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px;
+            background-color: #fff;
+            text-align: center;
+            width: 150px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .pokemon-card img {
+            width: 100px;
+            height: 100px;
+        }
+
+        #search {
+            padding: 10px;
+            font-size: 16px;
+            width: 70%;
+            max-width: 400px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="pokedex-container">
+        <h1>Pokédex</h1>
+        <input type="text" id="search" placeholder="Search Pokémon by name or ID">
+        <div id="pokemon-container"></div>
+    </div>
+    <script>
+        const apiBaseUrl = 'https://pokeapi.co/api/v2/pokemon/';
+        const limit = 50;  // Number of Pokémon to fetch
+        let allPokemon = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchAllPokemon(limit);
+            document.getElementById('search').addEventListener('input', liveSearch);
+        });
+
+        function fetchAllPokemon(limit) {
+            fetch(`${apiBaseUrl}?limit=${limit}`)
+                .then(response => response.json())
+                .then(data => {
+                    const pokemonList = data.results;
+                    pokemonList.forEach(pokemon => {
+                        fetchPokemonByName(pokemon.name);
+                    });
+                })
+                .catch(error => console.log('Error:', error));
+        }
+
+        function fetchPokemonByName(name) {
+            fetch(`${apiBaseUrl}${name}`)
+                .then(response => response.json())
+                .then(data => {
+                    allPokemon.push(data);
+                    displayAllPokemon(allPokemon);
+                })
+                .catch(error => console.log('Error:', error));
+        }
+
+        function liveSearch() {
+            const query = document.getElementById('search').value.toLowerCase();
+            const filteredPokemon = allPokemon.filter(pokemon => 
+                pokemon.name.toLowerCase().includes(query) || pokemon.id.toString().includes(query)
+            );
+            displayAllPokemon(filteredPokemon);
+        }
+
+        function displayAllPokemon(pokemonList) {
+            const pokemonContainer = document.getElementById('pokemon-container');
+            pokemonContainer.innerHTML = '';
+            pokemonList.forEach(pokemon => {
+                const pokemonCard = document.createElement('div');
+                pokemonCard.className = 'pokemon-card';
+                pokemonCard.innerHTML = `
+                    <h2>${pokemon.name}</h2>
+                    <img src="${pokemon.sprites.front_default}" alt="${pokemon.name}">
+                    <p>ID: ${pokemon.id}</p>
+                    <p>Type: ${pokemon.types.map(type => type.type.name).join(', ')}</p>
+                `;
+                pokemonContainer.appendChild(pokemonCard);
+            });
+        }
+    </script>
+</body>
+</html>
